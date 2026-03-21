@@ -82,6 +82,7 @@ export const Agenda: React.FC<AgendaProps> = ({ user, onNavigateToPatient, onPat
   }, [isPatientDropdownOpen]);
 
   const isGestor = user.role === UserRole.ADMIN;
+  const canAssignProfessional = user.role === UserRole.ADMIN || user.role === UserRole.RECEPTIONIST || user.role === UserRole.PROFESSIONAL;
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   const { appointments, setAppointments, loading } = useAppointments();
@@ -178,6 +179,47 @@ export const Agenda: React.FC<AgendaProps> = ({ user, onNavigateToPatient, onPat
     setSelectedAppointment(app);
     setDetailsPaymentMethod(app.paymentMethod || 'PIX');
     setIsDetailsModalOpen(true);
+  };
+
+  const assignableProfessionals = useMemo(() => {
+    return professionals.filter(p => p.role === UserRole.ADMIN || p.role === UserRole.PROFESSIONAL);
+  }, [professionals]);
+
+  const handleAssignProfessional = async (professionalId: string) => {
+    if (!selectedAppointment) return;
+
+    const professional = professionals.find(p => p.id === professionalId);
+    if (!professional) return;
+    
+    const previousAppointments = [...appointments];
+    const newPhysioName = professional.name || professional.full_name || 'Profissional';
+    
+    // Optimistic Update
+    const updatedAppointment = { 
+      ...selectedAppointment, 
+      physioId: professionalId, 
+      physio: newPhysioName 
+    };
+    setSelectedAppointment(updatedAppointment);
+    
+    setAppointments(prev => prev.map(app => 
+      app.id === selectedAppointment.id ? updatedAppointment : app
+    ));
+
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .update({ professional_id: professionalId })
+        .eq('id', selectedAppointment.id);
+
+      if (error) throw error;
+    } catch (err: any) {
+      console.error(err);
+      alert('Erro ao atribuir profissional. A visualização será revertida.');
+      // Rollback
+      setAppointments(previousAppointments);
+      setSelectedAppointment(selectedAppointment);
+    }
   };
 
   useEffect(() => {
@@ -1112,7 +1154,20 @@ export const Agenda: React.FC<AgendaProps> = ({ user, onNavigateToPatient, onPat
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Profissional</p>
-                  <p className="text-sm font-bold text-gray-700">{selectedAppointment.physio}</p>
+                  {canAssignProfessional && (!selectedAppointment.physioId || selectedAppointment.physio === 'A Definir') ? (
+                    <select
+                      value=""
+                      onChange={(e) => handleAssignProfessional(e.target.value)}
+                      className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:border-[var(--primary-color)] focus:ring-2 focus:ring-[var(--primary-color)]/20 transition-all cursor-pointer"
+                    >
+                      <option value="" disabled>Atribuir Profissional</option>
+                      {assignableProfessionals.map(p => (
+                        <option key={p.id} value={p.id}>{p.name || p.full_name || 'Profissional'}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="text-sm font-bold text-gray-700">{selectedAppointment.physio}</p>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Valor</p>
