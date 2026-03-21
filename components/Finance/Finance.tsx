@@ -109,6 +109,31 @@ export const Finance: React.FC<FinanceProps> = ({ user }) => {
   const [customDate, setCustomDate] = useState<string>('');
   const customDateRef = useRef<HTMLInputElement>(null);
 
+  // Filtros Avançados de Pagamento
+  const [paymentFilterMode, setPaymentFilterMode] = useState<'SINGLE' | 'MULTI'>('SINGLE');
+  const [activePaymentFilters, setActivePaymentFilters] = useState<string[]>(['TUDO']);
+  const PAYMENT_OPTIONS = ['TUDO', 'PIX', 'CRÉDITO', 'DÉBITO', 'DINHEIRO'];
+
+  const handlePaymentFilterClick = (method: string) => {
+    if (paymentFilterMode === 'SINGLE') {
+      setActivePaymentFilters([method]);
+    } else {
+      if (method === 'TUDO') {
+        setActivePaymentFilters(['TUDO']);
+      } else {
+        setActivePaymentFilters(prev => {
+          const withoutTudo = prev.filter(p => p !== 'TUDO');
+          if (withoutTudo.includes(method)) {
+            const newFilters = withoutTudo.filter(p => p !== method);
+            return newFilters.length === 0 ? ['TUDO'] : newFilters;
+          } else {
+            return [...withoutTudo, method];
+          }
+        });
+      }
+    }
+  };
+
   const dateFrom = React.useMemo(() => {
     if (period === 'CUSTOM') return customDate ? `${customDate}T00:00:00` : undefined;
     const startDate = subDays(new Date(), PERIODS[period]);
@@ -179,13 +204,27 @@ export const Finance: React.FC<FinanceProps> = ({ user }) => {
       }
     }
 
+    // FILTRO DE PAGAMENTO EM MEMÓRIA
+    const filtered = deduplicated.filter(t => {
+      if (activePaymentFilters.includes('TUDO')) return true;
+      const methodUpper = String(t.method || '').toUpperCase();
+      
+      return activePaymentFilters.some(filter => {
+        if (filter === 'CRÉDITO') return methodUpper.includes('CRÉDITO') || methodUpper.includes('CREDITO');
+        if (filter === 'DÉBITO') return methodUpper.includes('DÉBITO') || methodUpper.includes('DEBITO');
+        if (filter === 'DINHEIRO') return methodUpper.includes('DINHEIRO');
+        if (filter === 'PIX') return methodUpper.includes('PIX');
+        return false;
+      });
+    });
+
     // Sort by date descending approx
-    return deduplicated.sort((a, b) => {
+    return filtered.sort((a, b) => {
       const da = a.date.split('/').reverse().join('');
       const db = b.date.split('/').reverse().join('');
       return db.localeCompare(da);
     });
-  }, [appointments, manualTransactions]);
+  }, [appointments, manualTransactions, activePaymentFilters]);
 
   // Estado dos Saldos Dynamic
   const stats = useMemo(() => {
@@ -639,7 +678,7 @@ export const Finance: React.FC<FinanceProps> = ({ user }) => {
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 text-left">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
         <div>
           <h2 className="text-2xl font-black text-gray-800 tracking-tight">Financeiro {isAdmin ? 'Clínica' : 'Pessoal'}</h2>
           <p className="text-gray-500 text-sm font-medium">{isAdmin ? 'Acompanhe a saúde financeira total' : 'Resumo dos seus ganhos e despesas'}</p>
@@ -711,6 +750,47 @@ export const Finance: React.FC<FinanceProps> = ({ user }) => {
             className="flex items-center gap-2 bg-[#00c853] text-white px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-100 hover:bg-[#00b24a] transition-all active:scale-95"
           >
             <ArrowUpRight size={18} /><span>Nova Receita</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3 mb-8">
+        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-2">Forma de Pagto:</span>
+        <div className="flex bg-white rounded-xl shadow-sm border border-slate-200 p-1 flex-wrap items-center">
+          {PAYMENT_OPTIONS.map(opt => {
+            const isActive = activePaymentFilters.includes(opt);
+            return (
+              <button
+                key={opt}
+                onClick={() => handlePaymentFilterClick(opt)}
+                className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                  isActive
+                    ? "bg-[var(--primary-color)] text-white shadow-sm"
+                    : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                }`}
+              >
+                {opt}
+              </button>
+            )
+          })}
+          <div className="w-px h-5 bg-slate-200 mx-2" />
+          <button
+            onClick={() => {
+              if (paymentFilterMode === 'MULTI') {
+                setPaymentFilterMode('SINGLE');
+                setActivePaymentFilters(['TUDO']);
+              } else {
+                setPaymentFilterMode('MULTI');
+              }
+            }}
+            className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+              paymentFilterMode === 'MULTI'
+                ? "bg-slate-800 text-white shadow-sm"
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            PERSONALIZADO
+            {paymentFilterMode === 'MULTI' && <Check size={14} />}
           </button>
         </div>
       </div>
