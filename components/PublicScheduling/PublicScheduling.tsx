@@ -59,7 +59,39 @@ export const PublicScheduling: React.FC = () => {
             }
         };
 
-        fetchBookedTimes();
+        if (form.date) {
+            fetchBookedTimes();
+        }
+    }, [form.date]);
+
+    // REAL-TIME para liberação instantânea de horários no Portal Público
+    useEffect(() => {
+        if (!form.date) return;
+
+        const channelName = 'public_appointments_' + Math.random().toString(36).substring(7);
+        const fetchBookedTimesRealtime = async () => {
+             const { data, error } = await supabase
+                    .from('appointments')
+                    .select('time, duration, status')
+                    .eq('date', form.date)
+                    .neq('status', 'CANCELADO');
+
+             if (!error && data) {
+                 setBookedTimes(data.map(d => ({ time: d.time.substring(0, 5), duration: d.duration || 30 })));
+             }
+        }
+
+        const subscription = supabase
+            .channel(channelName)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => {
+                console.log("[Public Realtime] Mudança local/remota de agendamentos. Atualizando horários...");
+                fetchBookedTimesRealtime();
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(subscription);
+        };
     }, [form.date]);
 
     // Calendar Logic
@@ -124,92 +156,80 @@ export const PublicScheduling: React.FC = () => {
     const unavailTimesForSelectedDate = (() => {
         if (!form.date) return [];
         let unavailable = new Set<string>();
-
         const timeToMins = (t: string) => parseInt(t.split(':')[0]) * 60 + parseInt(t.split(':')[1]);
 
-        // FILTRO 1: AGENDAMENTOS EXISTENTES (Considerando duração)
+        const intervals: {start: number, end: number}[] = [];
+
+        // 1. Agendamentos
         bookedTimes.forEach(appt => {
             const startMins = timeToMins(appt.time);
-            const endMins = startMins + appt.duration;
-
-            TIME_OPTIONS.forEach(time => {
-                const tMins = timeToMins(time);
-                if (tMins >= startMins && tMins < endMins) {
-                    unavailable.add(time);
-                }
-            });
+            intervals.push({ start: startMins, end: startMins + appt.duration });
         });
 
-        // FILTRO 2: ALMOÇO
-        if (currentDaySettings && currentDaySettings.almoco_inicio && currentDaySettings.almoco_fim) {
-             const lunchStart = timeToMins(currentDaySettings.almoco_inicio);
-             const lunchEnd = timeToMins(currentDaySettings.almoco_fim);
-             
-             TIME_OPTIONS.forEach(time => {
-                 const tMins = timeToMins(time);
-                 if (tMins >= lunchStart && tMins < lunchEnd) {
-                     unavailable.add(time);
-                 }
-             });
-        }
-
-        // FILTRO 3: BLOQUEIOS MANUAIS
-        const activeBlocksForDate = blocks.filter(b => b.data === form.date);
+        // 2. Bloqueios manuais
+        const activeBlocksForDate = blocks.filter(b => b.data === form.date && b.descricao !== 'LIVRE_EXCECAO');
         activeBlocksForDate.forEach(block => {
-            const blockStart = timeToMins(block.hora_inicio);
-            const blockEnd = timeToMins(block.hora_fim);
-
-            TIME_OPTIONS.forEach(time => {
-                const tMins = timeToMins(time);
-                if (tMins >= blockStart && tMins < blockEnd) {
-                    unavailable.add(time);
-                }
-            });
+            intervals.push({ start: timeToMins(block.hora_inicio), end: timeToMins(block.hora_fim) });
         });
 
-        // FILTRO 4: TEMPO EXPIRADO HOJE
-        if (form.date === format(new Date(), 'yyyy-MM-dd')) {
-            const now = new Date();
-            const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
-            TIME_OPTIONS.forEach(time => {
-                if (timeToMins(time) <= currentTotalMinutes) {
-                    unavailable.add(time);
+        // 3. Expediente e Almoço
+        const dayOfWeek = new Date(form.date + 'T12:00:00').getDay();
+        const dayConfig = settings.find(s => s.dia_semana === dayOfWeek);
+
+        let openStart = 0;
+        let openEnd = 24 * 60;
+        let isClosed = false;
+
+        if (dayConfig) {
+            if (!dayConfig.esta_ativo) {
+                isClosed = true;
+            } else {
+                openStart = timeToMins(dayConfig.hora_inicio);
+                openEnd = timeToMins(dayConfig.hora_fim);
+                if (dayConfig.almoco_inicio && dayConfig.almoco_fim) {
+                    intervals.push({ start: timeToMins(dayConfig.almoco_inicio), end: timeToMins(dayConfig.almoco_fim) });
                 }
-            });
+            }
+        } else {
+            isClosed = true;
         }
 
-        // FILTRO 5: SLOT FITTING (Duração do serviço selecionado = serviceDuration)
-        const unavailArray = Array.from(unavailable);
-        const finalUnavailable = new Set(unavailArray);
+        const isToday = form.date === format(new Date(), 'yyyy-MM-dd');
+        let currentTotalMinutes = 0;
+        if (isToday) {
+            const now = new Date();
+            currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+        }
 
-        TIME_OPTIONS.forEach(time => {
-            if (finalUnavailable.has(time)) return; // Já indisponível
-
-            const startMins = timeToMins(time);
-            const neededEndMins = startMins + serviceDuration;
-
-            // Verificar se as peças lógicas subsequentes estão livres para acomodar o job
-            let tempMins = startMins;
-            while (tempMins < neededEndMins) {
-                const slotTime = `${String(Math.floor(tempMins / 60)).padStart(2, '0')}:${String(tempMins % 60).padStart(2, '0')}`;
-                
-                if (unavailArray.includes(slotTime)) {
-                    finalUnavailable.add(time);
-                    break;
-                }
-                tempMins += 30; // Granularidade de análise
+        TIME_OPTIONS.forEach(slot => {
+            if (isClosed) {
+                unavailable.add(slot);
+                return;
             }
-            
-            // Fim de Expediente
-            if (currentDaySettings && currentDaySettings.hora_fim) {
-                const eodMins = timeToMins(currentDaySettings.hora_fim);
-                if (neededEndMins > eodMins) {
-                    finalUnavailable.add(time);
-                }
+
+            const slotStart = timeToMins(slot);
+            const slotEnd = slotStart + serviceDuration;
+
+            // Passado hoje
+            if (isToday && slotStart <= currentTotalMinutes) {
+                unavailable.add(slot);
+                return;
+            }
+
+            // Fora do expediente
+            if (slotStart < openStart || slotEnd > openEnd) {
+                unavailable.add(slot);
+                return;
+            }
+
+            // Colisão de intervalos matemáticos (StartA < EndB AND EndA > StartB)
+            const hasCollision = intervals.some(inv => slotStart < inv.end && slotEnd > inv.start);
+            if (hasCollision) {
+                unavailable.add(slot);
             }
         });
 
-        return Array.from(finalUnavailable);
+        return Array.from(unavailable);
     })();
 
     const handleNext = () => {

@@ -234,85 +234,72 @@ export const Agenda: React.FC<AgendaProps> = ({ user, onNavigateToPatient, onPat
     const occupied = new Set<string>();
     const timeToMins = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
 
-    // 1. Bloquear por agendamentos existentes (considera duration)
+    const intervals: {start: number, end: number}[] = [];
+
+    // 1. Agendamentos existentes (ignora CANCELADO e id atual)
     filteredAppointments
       .filter(a => a.date === date && a.id !== newAppointment.id)
       .forEach(a => {
         const startMin = timeToMins(a.time);
         const duration = Number(a.duration) || 60;
-        const endMin = startMin + duration;
-        TIME_OPTIONS.forEach(slot => {
-          const slotMin = timeToMins(slot);
-          if (slotMin >= startMin && slotMin < endMin) {
-            occupied.add(slot);
-          }
-        });
+        intervals.push({ start: startMin, end: startMin + duration });
       });
 
-    // 2. Bloquear por bloqueios_agenda
+    // 2. Bloqueios manuais
     blocks
-      .filter(b => b.data === date)
+      .filter(b => b.data === date && b.descricao !== 'LIVRE_EXCECAO')
       .forEach(b => {
-        if (b.descricao === 'LIVRE_EXCECAO') return; // exceção libera, não bloqueia
-        const blockStart = timeToMins(b.hora_inicio);
-        const blockEnd = timeToMins(b.hora_fim);
-        TIME_OPTIONS.forEach(slot => {
-          const slotMin = timeToMins(slot);
-          if (slotMin >= blockStart && slotMin < blockEnd) occupied.add(slot);
-        });
+        intervals.push({ start: timeToMins(b.hora_inicio), end: timeToMins(b.hora_fim) });
       });
 
-    // 3. Bloquear por horários de funcionamento
+    // 3. Expediente e Almoço
     const dayOfWeek = new Date(date + 'T12:00:00').getDay();
     const dayConfig = settings.find(s => s.dia_semana === dayOfWeek);
+    
+    let openStart = 0;
+    let openEnd = 24 * 60;
+    let isClosed = false;
+
     if (dayConfig) {
-      TIME_OPTIONS.forEach(slot => {
-        const slotTimeStr = slot + ':00';
-        if (!dayConfig.esta_ativo) {
-          occupied.add(slot);
-        } else {
-          if (slotTimeStr < dayConfig.hora_inicio || slotTimeStr >= dayConfig.hora_fim) {
-            occupied.add(slot);
-          } else if (dayConfig.almoco_inicio && dayConfig.almoco_fim) {
-            if (slotTimeStr >= dayConfig.almoco_inicio && slotTimeStr < dayConfig.almoco_fim) {
-              occupied.add(slot);
-            }
-          }
+      if (!dayConfig.esta_ativo) {
+        isClosed = true;
+      } else {
+        openStart = timeToMins(dayConfig.hora_inicio);
+        openEnd = timeToMins(dayConfig.hora_fim);
+        if (dayConfig.almoco_inicio && dayConfig.almoco_fim) {
+           intervals.push({ start: timeToMins(dayConfig.almoco_inicio), end: timeToMins(dayConfig.almoco_fim) });
         }
-      });
+      }
+    } else {
+      isClosed = true; // sem configuração = fechado
     }
 
-    // --- FILTRO FINAL: SLOT FITTING ---
-    const finalOccupied = new Set(occupied);
-    const serviceDuration = newAppointment.duration || 60; // default 60min se nao selecionado
+    // --- FILTRO FINAL: SLOT FITTING POR MATEMÁTICA DE INTERVALOS ---
+    const serviceDuration = newAppointment.duration || 60;
 
     TIME_OPTIONS.forEach(slot => {
-      // Se já está ocupado por algum bloqueio exato, pula
-      if (finalOccupied.has(slot)) return; 
-      
-      const startMins = timeToMins(slot);
-      const neededEndMins = startMins + serviceDuration;
-      
-      let tempMins = startMins;
-      while (tempMins < neededEndMins) {
-        const tempSlot = `${String(Math.floor(tempMins / 60)).padStart(2, '0')}:${String(tempMins % 60).padStart(2, '0')}`;
-        
-        if (occupied.has(tempSlot)) {
-           finalOccupied.add(slot);
-           break;
-        }
-        tempMins += 30; // Mesma grade da TIME_OPTIONS
+      if (isClosed) {
+        occupied.add(slot);
+        return;
       }
       
-      // End of day check
-      if (dayConfig && dayConfig.hora_fim) {
-         if (neededEndMins > timeToMins(dayConfig.hora_fim)) {
-           finalOccupied.add(slot);
-         }
+      const slotStart = timeToMins(slot);
+      const slotEnd = slotStart + serviceDuration;
+
+      // Fora do expediente
+      if (slotStart < openStart || slotEnd > openEnd) {
+        occupied.add(slot);
+        return;
+      }
+
+      // Colisão matemática com intervalos (Overlap condition: StartA < EndB AND EndA > StartB)
+      const hasCollision = intervals.some(inv => slotStart < inv.end && slotEnd > inv.start);
+      if (hasCollision) {
+        occupied.add(slot);
       }
     });
 
-    return finalOccupied;
+    return occupied;
   }, [newAppointment.date, newAppointment.duration, newAppointment.id, filteredAppointments, blocks, settings]);
 
   // Quando a data muda e o horário atual fica ocupado, pula para o próximo slot livre
