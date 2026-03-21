@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cyan-50: #e0f7fa;
+  --color-cyan-100: #b2ebf2;
+  --color-cyan-200: #80deea;
+  --color-cyan-300: #4dd0e1;
+  --color-cyan-400: #26c6da;
+  --color-cyan-500: #00bcd4;
+  --color-cyan-600: #00acc1;
+  --color-cyan-700: #0097a7;
+  --color-cyan-800: #00838f;
+  --color-cyan-900: #006064;
+  --color-cyan-brand: var(--primary-color);
+  
+  --font-sans: 'Inter', sans-serif;
+}
+
+:root {
+  --primary-color: var(--color-cyan-brand);
+}
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-800 antialiased;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-colors;
+}
+
+.status-confirmado {
+  border: 2px solid #39FF14 !important;
+  box-shadow: 0 0 15px #39FF14, inset 0 0 5px #39FF14 !important;
+}
+.status-pendente {
+  border: 2px solid #39FF14 !important;
+  box-shadow: 0 0 15px #39FF14 !important;
+  animation: pulse-green 1.5s infinite;
+}
+.status-cancelado {
+  border: 2px solid #FF3131 !important;
+  box-shadow: 0 0 15px #FF3131 !important;
+  animation: pulse-red 1.5s infinite;
+}
+
+@keyframes pulse-green {
+  0%, 100% { opacity: 1; box-shadow: 0 0 15px #39FF14; }
+  50% { opacity: 0.7; box-shadow: 0 0 5px #39FF14; }
+}
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; box-shadow: 0 0 15px #FF3131; }
+  50% { opacity: 0.7; box-shadow: 0 0 5px #FF3131; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "GestãoFisio",
+  "description": "A comprehensive SaaS platform for physical therapy clinics featuring agenda management, electronic health records (EHR), clinical evolution, financial control, and subscription/credit management.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
