@@ -9,7 +9,7 @@ export interface Professional {
 
 let globalProfessionalsCache: Professional[] | null = null;
 
-export function useProfessionals() {
+export function useProfessionals({ publicMode = false } = {}) {
   const [professionals, setProfessionals] = useState<Professional[]>(globalProfessionalsCache ?? []);
   const [loading, setLoading] = useState(true);
 
@@ -18,7 +18,7 @@ export function useProfessionals() {
       console.log('[useProfessionals] SELECT obrigatório no SWR');
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.user) {
+        if (!publicMode && !session?.user) {
             const { data: refreshed } = await supabase.auth.refreshSession();
             if (!refreshed.session?.user) {
                 setLoading(false);

@@ -6,6 +6,7 @@ import { supabase } from '../../src/lib/supabase';
 import { useServices } from '../../src/hooks/useServices';
 import { useScheduleSettings } from '../../src/hooks/useScheduleSettings';
 import { useProfessionals } from '../../src/hooks/useProfessionals';
+import { useClinicSettings } from '../../src/hooks/useClinicSettings';
 
 export const PublicScheduling: React.FC = () => {
     const [currentStep, setCurrentStep] = useState(1);
@@ -25,8 +26,9 @@ export const PublicScheduling: React.FC = () => {
     const [bookedTimes, setBookedTimes] = useState<string[]>([]);
 
     const { services, loading: loadingServices } = useServices();
-    const { settings, blocks, loading: loadingSettings } = useScheduleSettings();
-    const { professionals, loading: loadingProfessionals } = useProfessionals();
+    const { settings, blocks, loading: loadingSettings } = useScheduleSettings({ publicMode: true });
+    const { professionals, loading: loadingProfessionals } = useProfessionals({ publicMode: true });
+    const { settings: clinicSettings } = useClinicSettings();
 
     const selectedService = services.find(s => s.id === form.serviceId);
     const serviceValue = selectedService ? selectedService.value || 150 : 0;
@@ -214,6 +216,7 @@ export const PublicScheduling: React.FC = () => {
                 serviceName: selectedService?.name || 'Serviço Estético',
                 payment_method: form.paymentMethod,
                 professional_id: form.professionalId || null,
+                notes: 'Agendamento via Site (Online)',
             });
 
             if (apptError) throw apptError;
@@ -282,10 +285,10 @@ export const PublicScheduling: React.FC = () => {
             <header className="w-full h-20 bg-white border-b border-slate-200 px-6 md:px-12 flex items-center justify-between sticky top-0 z-40 shadow-sm">
                 <div className="flex items-center gap-3">
                     <div className="bg-cyan-600 w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden shadow-sm shrink-0">
-                        <img src="https://placehold.co/400x400/00a5b5/ffffff.png?text=Logo" alt="Logo" className="w-full h-full object-cover" />
+                        <img src={clinicSettings.logo_url || "https://placehold.co/400x400/00a5b5/ffffff.png?text=Logo"} alt="Logo" className="w-full h-full object-cover" />
                     </div>
                     <div className="text-left hidden sm:block">
-                        <h1 className="font-black text-lg text-slate-800 leading-tight tracking-tight">GestãoEstética</h1>
+                        <h1 className="font-black text-lg text-slate-800 leading-tight tracking-tight">{clinicSettings.clinic_name || 'GestãoEstética'}</h1>
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Agendamento Online</p>
                     </div>
                 </div>

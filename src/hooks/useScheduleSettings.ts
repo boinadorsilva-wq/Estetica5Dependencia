@@ -31,7 +31,7 @@ const DEFAULT_SETTINGS: ScheduleSetting[] = [
 let globalSettingsCache: ScheduleSetting[] | null = null;
 let globalBlocksCache: AgendaBlock[] | null = null;
 
-export function useScheduleSettings() {
+export function useScheduleSettings({ publicMode = false } = {}) {
   const [settings, setSettings] = useState<ScheduleSetting[]>(globalSettingsCache ?? []);
   const [blocks, setBlocks] = useState<AgendaBlock[]>(globalBlocksCache ?? []);
   const [loading, setLoading] = useState(true);
@@ -40,7 +40,7 @@ export function useScheduleSettings() {
     console.log('[fetchSettings] SELECT obrigatório SWR');
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) {
+      if (!publicMode && !session?.user) {
          const { data: refreshed } = await supabase.auth.refreshSession();
          if (!refreshed.session?.user) {
              setLoading(false);
@@ -82,7 +82,7 @@ export function useScheduleSettings() {
     console.log('[fetchBlocks] SELECT obrigatório SWR');
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) {
+      if (!publicMode && !session?.user) {
          return; // Proteção simples
       }
 
