@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, UserRole } from '../../types';
-import { Building2, Mail, Lock, UserPlus, AlertCircle, CheckCircle2, Loader2, ChevronDown, Clock } from 'lucide-react';
+import { Building2, Mail, Lock, UserPlus, AlertCircle, CheckCircle2, Loader2, ChevronDown, Clock, Calendar } from 'lucide-react';
 import { supabase } from '../../src/lib/supabase';
 
 // ─── Logo dinâmica (busca clinic_settings do banco) ────────────────────────
@@ -350,6 +350,19 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
               </button>
             </p>
           )}
+        </div>
+
+        {/* Botão de Agendamento Público para Clientes */}
+        <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col items-center animate-in fade-in duration-500 delay-150">
+          <p className="text-xs text-gray-500 mb-3 font-medium">É paciente e deseja avaliar um horário?</p>
+          <button 
+            type="button"
+            onClick={() => window.location.hash = '#agendamento'}
+            className="w-full max-w-[280px] flex items-center justify-center gap-2 py-3 px-6 bg-cyan-50/50 text-[var(--primary-color)] font-bold rounded-2xl border border-cyan-100 hover:bg-[var(--primary-color)] hover:text-white hover:border-[var(--primary-color)] transition-all shadow-sm"
+          >
+            <Calendar size={18} />
+            Agendar Consulta Online
+          </button>
         </div>
 
         <div className="mt-8 text-center">

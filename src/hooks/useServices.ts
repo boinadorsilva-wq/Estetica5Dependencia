@@ -11,19 +11,10 @@ export function useServices() {
     const fetchServices = async () => {
         console.log('[useServices] SELECT obrigatório no SWR');
         try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session?.user) {
-                const { data: refreshed } = await supabase.auth.refreshSession();
-                if (!refreshed.session?.user) {
-                    setLoading(false);
-                    return;
-                }
-            }
-
             const { data, error } = await supabase.from('services').select('*').order('created_at', { ascending: false });
 
-            console.log('[useServices] Dados recebidos:', data, 'Erro:', error);
-            if (data && !error) console.log('Tabela Services carregou:', data);
+            // console.log('[useServices] Dados recebidos:', data, 'Erro:', error);
+            if (data && !error) console.log('Tabela Services carregou:', data.length, 'itens');
 
             if (error) {
                 console.warn('[useServices] Erro ao buscar serviços - mantendo dados antigos:', error);
