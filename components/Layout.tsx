@@ -176,20 +176,15 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, activeTab, onTab
 
   const getRoleIcon = () => {
     switch (userRole) {
-      case UserRole.ADMIN: return <ShieldCheck size={12} className="text-cyan-500" />;
-      case UserRole.RECEPTIONIST: return <Users size={12} className="text-violet-500" />;
-      case UserRole.PROFESSIONAL: return <Stethoscope size={12} className="text-emerald-500" />;
-      default: return <Building2 size={12} className="text-cyan-500" />;
+      case UserRole.ADMIN: return <ShieldCheck size={12} className="text-[var(--primary-color)]" />;
+      case UserRole.RECEPTIONIST: return <Users size={12} className="text-[var(--primary-color)]" />;
+      case UserRole.PROFESSIONAL: return <Stethoscope size={12} className="text-[var(--primary-color)]" />;
+      default: return <Building2 size={12} className="text-[var(--primary-color)]" />;
     }
   };
 
   const getRoleBadgeClass = () => {
-    switch (userRole) {
-      case UserRole.ADMIN: return 'text-cyan-500';
-      case UserRole.RECEPTIONIST: return 'text-violet-500';
-      case UserRole.PROFESSIONAL: return 'text-emerald-500';
-      default: return 'text-gray-400';
-    }
+    return 'text-[var(--primary-color)]';
   };
 
   // Usa logo e nome da clínica do banco (ou defaults)
@@ -243,7 +238,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, user, activeTab, onTab
               {user.avatar ? (
                 <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-xl object-cover border border-white shadow-sm" />
               ) : (
-                <div className="w-10 h-10 rounded-xl bg-cyan-100 flex items-center justify-center text-cyan-600 font-bold text-sm border border-white shadow-sm">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm border border-white shadow-sm" style={{ color: 'var(--primary-color)', backgroundColor: 'color-mix(in srgb, var(--primary-color) 20%, white)' }}>
                   {user.name.charAt(0)}
                 </div>
               )}

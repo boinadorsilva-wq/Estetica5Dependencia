@@ -59,13 +59,13 @@ export const MeuPerfil: React.FC<MeuPerfilProps> = ({ user, onUserUpdated }) => 
   const getRoleInfo = () => {
     switch (user.role) {
       case UserRole.ADMIN:
-        return { label: 'Gestor Admin', icon: <ShieldCheck size={14} className="text-cyan-500" />, color: 'text-cyan-600 bg-cyan-50 border-cyan-100' };
+        return { label: 'Gestor Admin', icon: <ShieldCheck size={14} className="text-[var(--primary-color)]" />, color: 'text-[var(--primary-color)] border-transparent', style: { backgroundColor: 'color-mix(in srgb, var(--primary-color) 10%, transparent)' } };
       case UserRole.RECEPTIONIST:
-        return { label: 'Recepcionista', icon: <Users size={14} className="text-violet-500" />, color: 'text-violet-600 bg-violet-50 border-violet-100' };
+        return { label: 'Recepcionista', icon: <Users size={14} className="text-[var(--primary-color)]" />, color: 'text-[var(--primary-color)] border-transparent', style: { backgroundColor: 'color-mix(in srgb, var(--primary-color) 10%, transparent)' } };
       case UserRole.PROFESSIONAL:
-        return { label: 'Profissional', icon: <Stethoscope size={14} className="text-emerald-500" />, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' };
+        return { label: 'Profissional', icon: <Stethoscope size={14} className="text-[var(--primary-color)]" />, color: 'text-[var(--primary-color)] border-transparent', style: { backgroundColor: 'color-mix(in srgb, var(--primary-color) 10%, transparent)' } };
       default:
-        return { label: 'Colaborador', icon: <UserIcon size={14} className="text-slate-400" />, color: 'text-slate-500 bg-slate-50 border-slate-100' };
+        return { label: 'Colaborador', icon: <UserIcon size={14} className="text-slate-400" />, color: 'text-slate-500 bg-slate-50 border-slate-100', style: {} };
     }
   };
 
@@ -273,7 +273,7 @@ export const MeuPerfil: React.FC<MeuPerfilProps> = ({ user, onUserUpdated }) => 
           {/* Cargo */}
           <div className="space-y-2">
             <label className="text-xs font-black text-slate-600 uppercase tracking-widest">Cargo</label>
-            <div className={`flex items-center gap-3 px-5 py-4 rounded-2xl border ${roleInfo.color}`}>
+            <div className={`flex items-center gap-3 px-5 py-4 rounded-2xl border ${roleInfo.color}`} style={roleInfo.style}>
               {roleInfo.icon}
               <span className="font-black text-sm">{roleInfo.label}</span>
             </div>

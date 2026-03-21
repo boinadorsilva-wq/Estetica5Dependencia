@@ -14,7 +14,7 @@ interface ReportsProps {
   user: User;
 }
 
-const COLORS_PIE = ['#0891b2', '#2dd4bf', '#818cf8', '#f472b6', '#fbbf24', '#f59e0b', '#3b82f6', '#10b981'];
+const COLORS_PIE = ['var(--primary-color)', '#2dd4bf', '#818cf8', '#f472b6', '#fbbf24', '#f59e0b', '#3b82f6', '#10b981'];
 
 export const Reports: React.FC<ReportsProps> = ({ user }) => {
   const [period, setPeriod] = useState('Mensal');
@@ -148,7 +148,7 @@ export const Reports: React.FC<ReportsProps> = ({ user }) => {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ color: 'var(--primary-color)', backgroundColor: 'color-mix(in srgb, var(--primary-color) 10%, transparent)' }}>
             <DollarSign size={24} />
           </div>
           <div>
@@ -159,7 +159,7 @@ export const Reports: React.FC<ReportsProps> = ({ user }) => {
           </div>
         </div>
         <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 bg-cyan-50 text-[var(--primary-color)] rounded-2xl flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ color: 'var(--primary-color)', backgroundColor: 'color-mix(in srgb, var(--primary-color) 10%, transparent)' }}>
             <UserCheck size={24} />
           </div>
           <div>
@@ -168,7 +168,7 @@ export const Reports: React.FC<ReportsProps> = ({ user }) => {
           </div>
         </div>
         <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm flex items-center gap-4 hidden lg:flex">
-          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ color: 'var(--primary-color)', backgroundColor: 'color-mix(in srgb, var(--primary-color) 10%, transparent)' }}>
             <Activity size={24} />
           </div>
           <div>

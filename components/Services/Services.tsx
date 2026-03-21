@@ -135,11 +135,21 @@ export const Services: React.FC<ServicesProps> = ({ user }) => {
         ) : services.map((service) => (
           <div key={service.id} className="bg-white p-7 rounded-[32px] border border-slate-100 shadow-sm hover:border-[var(--primary-color)]/30 hover:shadow-xl hover:shadow-cyan-500/5 transition-all flex flex-col group">
             <div className="flex items-center justify-between mb-6">
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center 
-                ${service.type === 'Individual' ? 'bg-sky-50 text-sky-600' : ''}
-                ${service.type === 'Assinatura' ? 'bg-cyan-50 text-[var(--primary-color)]' : ''}
-                ${service.type === 'Pacote' ? 'bg-amber-50 text-amber-600' : ''}
-              `}>
+              <div 
+                className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                style={{
+                  color: service.type === 'Individual' 
+                    ? 'var(--primary-color)' 
+                    : service.type === 'Pacote' 
+                    ? 'color-mix(in srgb, var(--primary-color) 70%, transparent)' 
+                    : 'color-mix(in srgb, var(--primary-color) 40%, transparent)',
+                  backgroundColor: service.type === 'Individual' 
+                    ? 'color-mix(in srgb, var(--primary-color) 10%, transparent)' 
+                    : service.type === 'Pacote'
+                    ? 'color-mix(in srgb, var(--primary-color) 6%, transparent)'
+                    : 'color-mix(in srgb, var(--primary-color) 3%, transparent)',
+                }}
+              >
                 {service.type === 'Individual' && <Stethoscope size={28} />}
                 {service.type === 'Assinatura' && <FileText size={28} />}
                 {service.type === 'Pacote' && <Package size={28} />}
@@ -162,7 +172,17 @@ export const Services: React.FC<ServicesProps> = ({ user }) => {
 
             <div className="mb-6">
               <h3 className="text-xl font-black text-slate-800 mb-1 group-hover:text-[var(--primary-color)] transition-colors">{service.name}</h3>
-              <p className="text-[10px] font-black text-[var(--primary-color)] uppercase tracking-[0.2em]">{service.type}</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em]"
+                style={{
+                  color: service.type === 'Individual' 
+                    ? 'var(--primary-color)' 
+                    : service.type === 'Pacote' 
+                    ? 'color-mix(in srgb, var(--primary-color) 70%, transparent)' 
+                    : 'color-mix(in srgb, var(--primary-color) 40%, transparent)'
+                }}
+              >
+                {service.type}
+              </p>
             </div>
 
             <div className="mt-auto space-y-4 pt-6 border-t border-slate-50">

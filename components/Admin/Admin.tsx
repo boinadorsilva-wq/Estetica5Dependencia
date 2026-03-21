@@ -313,10 +313,14 @@ export const Admin: React.FC<AdminProps> = ({ user }) => {
     : 'Colaborador';
 
   const roleClass = (role: string) =>
-    role === 'admin' || role === UserRole.ADMIN ? 'bg-cyan-50 text-cyan-600 border-cyan-100'
-    : role === 'receptionist' || role === UserRole.RECEPTIONIST ? 'bg-violet-50 text-violet-600 border-violet-100'
-    : role === 'professional' || role === UserRole.PROFESSIONAL ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+    role === 'admin' || role === UserRole.ADMIN ? 'text-[var(--primary-color)] border-transparent'
+    : role === 'receptionist' || role === UserRole.RECEPTIONIST ? 'text-[var(--primary-color)] border-transparent'
+    : role === 'professional' || role === UserRole.PROFESSIONAL ? 'text-[var(--primary-color)] border-transparent'
     : 'bg-slate-50 text-slate-500 border-slate-100';
+
+  const roleStyle = (role: string) =>
+    role === 'admin' || role === 'receptionist' || role === 'professional' || role === UserRole.ADMIN || role === UserRole.RECEPTIONIST || role === UserRole.PROFESSIONAL
+    ? { backgroundColor: 'color-mix(in srgb, var(--primary-color) 15%, transparent)' } : {};
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 relative text-left space-y-10">
@@ -347,7 +351,7 @@ export const Admin: React.FC<AdminProps> = ({ user }) => {
                   <div className="min-w-0">
                     <p className="font-black text-slate-800 text-sm truncate">{pending.name}</p>
                     <p className="text-[10px] text-slate-400 font-bold truncate">{pending.email}</p>
-                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border tracking-widest ${roleClass(pending.role)}`}>
+                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border tracking-widest ${roleClass(pending.role)}`} style={roleStyle(pending.role)}>
                       {roleLabel(pending.role)}
                     </span>
                   </div>
@@ -585,16 +589,16 @@ export const Admin: React.FC<AdminProps> = ({ user }) => {
         {/* Renderiza grupos dinamicamente */}
         {[
           {
-            key: 'admin', label: 'Administradores', icon: <ShieldCheck size={16} className="text-cyan-600" />,
-            accent: 'bg-cyan-50 border-cyan-100', headerColor: 'text-cyan-600', emptyText: 'Nenhum administrador cadastrado',
+            key: 'admin', label: 'Administradores', icon: <ShieldCheck size={16} style={{ color: 'var(--primary-color)' }} />,
+            accent: 'border-b', headerColor: 'text-[var(--primary-color)]', bgStyle: { backgroundColor: 'color-mix(in srgb, var(--primary-color) 4%, transparent)' }, emptyText: 'Nenhum administrador cadastrado',
           },
           {
-            key: 'professional', label: 'Profissionais', icon: <Stethoscope size={16} className="text-emerald-600" />,
-            accent: 'bg-emerald-50 border-emerald-100', headerColor: 'text-emerald-600', emptyText: 'Nenhum profissional cadastrado',
+            key: 'professional', label: 'Profissionais', icon: <Stethoscope size={16} style={{ color: 'var(--primary-color)' }} />,
+            accent: 'border-b', headerColor: 'text-[var(--primary-color)]', bgStyle: { backgroundColor: 'color-mix(in srgb, var(--primary-color) 4%, transparent)' }, emptyText: 'Nenhum profissional cadastrado',
           },
           {
-            key: 'receptionist', label: 'Recepcionistas', icon: <Users size={16} className="text-violet-600" />,
-            accent: 'bg-violet-50 border-violet-100', headerColor: 'text-violet-600', emptyText: 'Nenhuma recepcionista cadastrada',
+            key: 'receptionist', label: 'Recepcionistas', icon: <Users size={16} style={{ color: 'var(--primary-color)' }} />,
+            accent: 'border-b', headerColor: 'text-[var(--primary-color)]', bgStyle: { backgroundColor: 'color-mix(in srgb, var(--primary-color) 4%, transparent)' }, emptyText: 'Nenhuma recepcionista cadastrada',
           },
         ].map(group => {
           const groupUsers = dbUsers.filter(u => {
@@ -610,12 +614,12 @@ export const Admin: React.FC<AdminProps> = ({ user }) => {
           return (
             <div key={group.key} className="bg-white rounded-[40px] border border-slate-100 shadow-sm overflow-hidden">
               {/* Cabeçalho do grupo */}
-              <div className={`px-8 py-5 flex items-center gap-3 ${group.accent} border-b`}>
-                <div className="w-8 h-8 rounded-xl bg-white/70 flex items-center justify-center shadow-sm">
+              <div className={`px-8 py-5 flex items-center gap-3 ${group.accent}`} style={group.bgStyle}>
+                <div className="w-8 h-8 rounded-xl bg-white/90 flex items-center justify-center shadow-sm">
                   {group.icon}
                 </div>
                 <h4 className={`font-black text-sm ${group.headerColor}`}>{group.label}</h4>
-                <span className={`ml-auto text-[10px] font-black px-2.5 py-1 rounded-full bg-white/70 ${group.headerColor}`}>
+                <span className={`ml-auto text-[10px] font-black px-2.5 py-1 rounded-full bg-white/90 ${group.headerColor}`}>
                   {groupUsers.length} membro{groupUsers.length !== 1 ? 's' : ''}
                 </span>
               </div>

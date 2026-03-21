@@ -212,7 +212,7 @@ export const Home = ({ onNavigateToPatient }: { onNavigateToPatient?: (id: strin
         const fora = outOfHoursCount;
         const comercial = totalLeads - fora;
         return [
-            { name: 'Horário Comercial', value: comercial, color: '#0ea5e9' }, // sky-500
+            { name: 'Horário Comercial', value: comercial, color: 'var(--primary-color)' }, // sky-500 -> primary
             { name: 'Fora do Horário', value: fora, color: '#f97316' } // orange-500
         ];
     }, [outOfHoursCount, totalLeads]);
@@ -298,7 +298,7 @@ export const Home = ({ onNavigateToPatient }: { onNavigateToPatient?: (id: strin
             {/* KPIs */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="bg-white rounded-[24px] p-6 border border-slate-100 shadow-sm flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ color: 'var(--primary-color)', backgroundColor: 'color-mix(in srgb, var(--primary-color) 10%, transparent)' }}>
                         <Users size={24} />
                     </div>
                     <div>
@@ -308,7 +308,7 @@ export const Home = ({ onNavigateToPatient }: { onNavigateToPatient?: (id: strin
                 </div>
 
                 <div className="bg-white rounded-[24px] p-6 border border-slate-100 shadow-sm flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ color: 'var(--primary-color)', backgroundColor: 'color-mix(in srgb, var(--primary-color) 10%, transparent)' }}>
                         <CalendarCheck size={24} />
                     </div>
                     <div>
@@ -318,7 +318,7 @@ export const Home = ({ onNavigateToPatient }: { onNavigateToPatient?: (id: strin
                 </div>
 
                 <div className="bg-white rounded-[24px] p-6 border border-slate-100 shadow-sm flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ color: 'var(--primary-color)', backgroundColor: 'color-mix(in srgb, var(--primary-color) 10%, transparent)' }}>
                         <Clock size={24} />
                     </div>
                     <div>
@@ -328,7 +328,7 @@ export const Home = ({ onNavigateToPatient }: { onNavigateToPatient?: (id: strin
                 </div>
 
                 <div className="bg-white rounded-[24px] p-6 border border-slate-100 shadow-sm flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ color: 'var(--primary-color)', backgroundColor: 'color-mix(in srgb, var(--primary-color) 10%, transparent)' }}>
                         <Filter size={24} />
                     </div>
                     <div>
@@ -352,8 +352,8 @@ export const Home = ({ onNavigateToPatient }: { onNavigateToPatient?: (id: strin
                             <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
+                                        <stop offset="5%" stopColor="var(--primary-color)" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="var(--primary-color)" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -363,7 +363,7 @@ export const Home = ({ onNavigateToPatient }: { onNavigateToPatient?: (id: strin
                                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                     labelStyle={{ fontWeight: 'bold', color: '#1e293b' }}
                                 />
-                                <Area type="monotone" dataKey="count" stroke="#0ea5e9" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" />
+                                <Area type="monotone" dataKey="count" stroke="var(--primary-color)" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
