@@ -258,21 +258,53 @@ export const PublicScheduling: React.FC = () => {
     if (isSuccess) {
         return (
             <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 font-sans">
-                <div className="bg-white p-10 rounded-[40px] shadow-xl max-w-md w-full text-center animate-in zoom-in-95 duration-500 border border-slate-100">
-                    <div className="w-24 h-24 bg-cyan-50 text-cyan-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <CheckCircle2 size={48} strokeWidth={2.5} />
+                <div className="bg-white p-8 sm:p-10 rounded-[40px] shadow-xl max-w-md w-full text-center animate-in zoom-in-95 duration-500 border border-slate-100">
+                    <div className="w-24 h-24 bg-cyan-50 text-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <CheckCircle2 size={56} strokeWidth={2.5} />
                     </div>
-                    <h2 className="text-3xl font-black text-slate-800 mb-4 tracking-tight">Agendamento Confirmado!</h2>
-                    <p className="text-slate-500 mb-8 font-medium">Seu horário foi reservado com sucesso. A clínica entrará em contato se necessário.</p>
+                    <h2 className="text-3xl font-black text-slate-800 mb-3 tracking-tight">Oba! Agendado! 🎉</h2>
+                    <p className="text-slate-500 mb-8 font-medium text-sm leading-relaxed px-2">Sua reserva foi registrada no sistema da clínica com sucesso. Resumo do seu horário:</p>
+
+                    <div className="bg-slate-50 border border-slate-100 p-5 rounded-3xl mb-8 flex flex-col gap-3.5 text-left relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                        <div className="flex items-center gap-3 relative z-10">
+                            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-cyan-600 shadow-sm shrink-0">
+                                <Clock size={18} />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Procedimento</p>
+                                <p className="text-sm font-bold text-slate-800">{selectedService?.name || 'Serviço Estético'}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3 relative z-10 mt-2">
+                            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-emerald-500 shadow-sm shrink-0">
+                                <CalendarIcon size={18} />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Data e Hora</p>
+                                <p className="text-sm font-bold text-slate-800">
+                                     {form.date ? format(new Date(`${form.date}T12:00:00`), 'dd/MM/yyyy') : ''} às {form.time}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <button
                         onClick={() => {
                             setIsSuccess(false);
                             setForm({ name: '', phone: '', email: '', serviceId: '', date: '', time: '', paymentMethod: '', professionalId: '' });
                             setCurrentStep(1);
                         }}
-                        className="w-full bg-cyan-600 text-white hover:bg-cyan-700 py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all"
+                        className="w-full bg-cyan-600 text-white hover:bg-cyan-700 py-4 mb-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-md shadow-cyan-600/20 active:scale-95"
                     >
                         Novo Agendamento
+                    </button>
+                    
+                    <button
+                        onClick={handleLoginRedirect}
+                        className="w-full bg-white text-slate-500 hover:text-slate-700 border border-slate-200 hover:bg-slate-50 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all active:scale-95"
+                    >
+                        Voltar para a Página Inicial
                     </button>
                 </div>
             </div>
