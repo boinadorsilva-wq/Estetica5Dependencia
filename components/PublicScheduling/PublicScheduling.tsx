@@ -362,16 +362,16 @@ export const PublicScheduling: React.FC = () => {
         return (
             <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 font-sans">
                 <div className="bg-white p-8 sm:p-10 rounded-[40px] shadow-xl max-w-md w-full text-center animate-in zoom-in-95 duration-500 border border-slate-100">
-                    <div className="w-24 h-24 bg-cyan-50 text-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 text-[var(--primary-color)]" style={{ backgroundColor: 'color-mix(in srgb, var(--primary-color) 10%, transparent)' }}>
                         <CheckCircle2 size={56} strokeWidth={2.5} />
                     </div>
                     <h2 className="text-3xl font-black text-slate-800 mb-3 tracking-tight">Oba! Agendado! 🎉</h2>
                     <p className="text-slate-500 mb-8 font-medium text-sm leading-relaxed px-2">Sua reserva foi registrada no sistema da clínica com sucesso. Resumo do seu horário:</p>
 
                     <div className="bg-slate-50 border border-slate-100 p-5 rounded-3xl mb-8 flex flex-col gap-3.5 text-left relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                        <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -mr-10 -mt-10" style={{ backgroundColor: 'color-mix(in srgb, var(--primary-color) 8%, transparent)' }}></div>
                         <div className="flex items-center gap-3 relative z-10">
-                            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-cyan-600 shadow-sm shrink-0">
+                            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[var(--primary-color)] shadow-sm shrink-0">
                                 <Clock size={18} />
                             </div>
                             <div>
@@ -380,7 +380,7 @@ export const PublicScheduling: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex items-center gap-3 relative z-10 mt-2">
-                            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-emerald-500 shadow-sm shrink-0">
+                            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[var(--primary-color)] shadow-sm shrink-0">
                                 <CalendarIcon size={18} />
                             </div>
                             <div>
@@ -398,7 +398,7 @@ export const PublicScheduling: React.FC = () => {
                             setForm({ name: '', phone: '', email: '', serviceId: '', date: '', time: '', paymentMethod: '', professionalId: '' });
                             setCurrentStep(1);
                         }}
-                        className="w-full bg-cyan-600 text-white hover:bg-cyan-700 py-4 mb-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-md shadow-cyan-600/20 active:scale-95"
+                        className="w-full bg-[var(--primary-color)] text-white hover:opacity-90 py-4 mb-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-md active:scale-95"
                     >
                         Novo Agendamento
                     </button>
@@ -487,7 +487,7 @@ export const PublicScheduling: React.FC = () => {
 
                                 {loadingServices ? (
                                     <div className="flex justify-center p-12">
-                                        <div className="w-10 h-10 border-4 border-cyan-100 border-t-cyan-500 rounded-full animate-spin"></div>
+                                        <div className="w-10 h-10 border-4 rounded-full animate-spin" style={{ borderColor: 'color-mix(in srgb, var(--primary-color) 20%, transparent)', borderTopColor: 'var(--primary-color)' }}></div>
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -509,11 +509,11 @@ export const PublicScheduling: React.FC = () => {
                                                     </div>
                                                     <div className="flex items-center gap-4 text-xs font-bold mt-auto">
                                                         <div className="flex items-center gap-1.5 text-slate-500 bg-white px-2.5 py-1 rounded-md shadow-sm border border-slate-100">
-                                                            <Clock size={14} className="text-cyan-600" />
+                                                            <Clock size={14} className="text-[var(--primary-color)]" />
                                                             {srv.duration} min
                                                         </div>
                                                         <div className="flex items-center gap-1.5 text-slate-500 bg-white px-2.5 py-1 rounded-md shadow-sm border border-slate-100">
-                                                            <DollarSign size={14} className="text-emerald-500" />
+                                                            <DollarSign size={14} className="text-[var(--primary-color)]" />
                                                             {srv.value ? `R$ ${srv.value.toFixed(2)}` : 'Grátis'}
                                                         </div>
                                                     </div>
@@ -575,13 +575,13 @@ export const PublicScheduling: React.FC = () => {
                                                         aspect-square flex flex-col items-center justify-center rounded-xl text-sm font-bold transition-all relative
                                                         ${!isCurrentMonth ? 'text-slate-300 cursor-default opacity-50' : ''}
                                                         ${isCurrentMonth && isUnavail ? 'text-slate-300 cursor-not-allowed bg-slate-100/50' : ''}
-                                                        ${isCurrentMonth && !isUnavail && !isSelected ? 'hover:bg-cyan-100 hover:text-cyan-800 cursor-pointer text-slate-700 bg-white shadow-sm' : ''}
-                                                        ${isSelected ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/30 scale-105 ring-2 ring-cyan-600 ring-offset-2 ring-offset-slate-50' : ''}
+                                                        ${isCurrentMonth && !isUnavail && !isSelected ? 'hover:bg-slate-100 hover:text-[var(--primary-color)] cursor-pointer text-slate-700 bg-white shadow-sm' : ''}
+                                                        ${isSelected ? 'bg-[var(--primary-color)] text-white shadow-md scale-105 ring-2 ring-[var(--primary-color)] ring-offset-2 ring-offset-slate-50' : ''}
                                                     `}
                                                 >
                                                     <span>{format(day, 'd')}</span>
                                                     {isTodayDate && !isSelected && (
-                                                        <span className="absolute bottom-1 w-1 h-1 bg-cyan-500 rounded-full"></span>
+                                                        <span className="absolute bottom-1 w-1 h-1 bg-[var(--primary-color)] rounded-full"></span>
                                                     )}
                                                     {isTodayDate && isSelected && (
                                                         <span className="absolute bottom-1 w-1 h-1 bg-white rounded-full"></span>
@@ -614,9 +614,9 @@ export const PublicScheduling: React.FC = () => {
                                                 disabled={isUnavail}
                                                 onClick={() => !isUnavail && setForm({ ...form, time })}
                                                 className={`py-3 px-2 rounded-xl font-bold text-sm transition-all border-2 flex items-center justify-center gap-2
-                                                    ${isSelected ? 'bg-cyan-600 border-cyan-600 text-white shadow-md shadow-cyan-600/20' :
+                                                    ${isSelected ? 'bg-[var(--primary-color)] border-[var(--primary-color)] text-white shadow-md' :
                                                         isUnavail ? 'opacity-40 cursor-not-allowed border-slate-100 bg-slate-50 line-through text-slate-400' :
-                                                            'border-slate-200 bg-white hover:border-cyan-300 hover:bg-cyan-50 text-slate-700 shadow-sm'}`}
+                                                            'border-slate-200 bg-white hover:border-[var(--primary-color)] hover:text-[var(--primary-color)] text-slate-700 shadow-sm'}`}
                                             >
                                                 {time}
                                             </button>
@@ -735,12 +735,12 @@ export const PublicScheduling: React.FC = () => {
 
                                     {/* SUMMARY CARD */}
                                     <div>
-                                        <div className="bg-cyan-50 border border-cyan-100 rounded-3xl p-6 h-full flex flex-col">
-                                            <h3 className="font-black text-cyan-900 uppercase tracking-widest text-xs mb-4">Resumo do Agendamento</h3>
+                                        <div className="rounded-3xl p-6 h-full flex flex-col border" style={{ backgroundColor: 'color-mix(in srgb, var(--primary-color) 8%, transparent)', borderColor: 'color-mix(in srgb, var(--primary-color) 20%, transparent)' }}>
+                                            <h3 className="font-black uppercase tracking-widest text-xs mb-4 text-[var(--primary-color)]">Resumo do Agendamento</h3>
 
                                             <div className="space-y-4 flex-1">
                                                 <div className="flex gap-3">
-                                                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-cyan-600 shadow-sm shrink-0">
+                                                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[var(--primary-color)] shadow-sm shrink-0">
                                                         <CalendarIcon size={18} />
                                                     </div>
                                                     <div>
@@ -752,7 +752,7 @@ export const PublicScheduling: React.FC = () => {
                                                 </div>
 
                                                 <div className="flex gap-3">
-                                                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-cyan-600 shadow-sm shrink-0">
+                                                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[var(--primary-color)] shadow-sm shrink-0">
                                                         <Clock size={18} />
                                                     </div>
                                                     <div>
@@ -763,9 +763,9 @@ export const PublicScheduling: React.FC = () => {
                                                 </div>
                                             </div>
 
-                                            <div className="mt-6 pt-4 border-t border-cyan-200/50 flex justify-between items-end">
-                                                <span className="text-sm font-bold text-cyan-800">Total</span>
-                                                <span className="text-2xl font-black text-cyan-700">R$ {serviceValue.toFixed(2)}</span>
+                                            <div className="mt-6 pt-4 border-t flex justify-between items-end" style={{ borderTopColor: 'color-mix(in srgb, var(--primary-color) 20%, transparent)' }}>
+                                                <span className="text-sm font-bold text-[var(--primary-color)]">Total</span>
+                                                <span className="text-2xl font-black text-[var(--primary-color)]">R$ {serviceValue.toFixed(2)}</span>
                                             </div>
                                         </div>
                                     </div>
