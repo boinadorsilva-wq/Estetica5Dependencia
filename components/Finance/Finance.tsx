@@ -154,6 +154,12 @@ export const Finance: React.FC<FinanceProps> = ({ user }) => {
   const pendingPayments = useMemo(() => {
     return appointments
       .filter(a => a.status === 'PENDENTE')
+      .sort((a, b) => {
+        // Ordena do mais recente para o mais antigo usando date + created_at
+        const da = a.created_at || a.date || '';
+        const db = b.created_at || b.date || '';
+        return db.localeCompare(da);
+      })
       .map(a => ({
         id: a.id,
         patientId: a.patientId,
@@ -218,11 +224,15 @@ export const Finance: React.FC<FinanceProps> = ({ user }) => {
       });
     });
 
-    // Sort by date descending approx
+    // Ordena do mais recente para o mais antigo (dd/mm/yyyy → yyyy-mm-dd para comparação)
     return filtered.sort((a, b) => {
-      const da = a.date.split('/').reverse().join('');
-      const db = b.date.split('/').reverse().join('');
-      return db.localeCompare(da);
+      const toComp = (d: string) => {
+        // Suporta dd/mm/yyyy e yyyy-mm-dd
+        if (!d) return '';
+        if (d.includes('/')) return d.split('/').reverse().join('');
+        return d.replace(/-/g, '');
+      };
+      return toComp(b.date).localeCompare(toComp(a.date));
     });
   }, [appointments, manualTransactions, activePaymentFilters]);
 
