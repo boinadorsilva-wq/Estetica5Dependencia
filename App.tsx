@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Layout } from './components/Layout';
 import { Home } from './components/Home/Home';
+import { Inicio } from './components/Inicio/Inicio';
 import { Agenda } from './components/Agenda/Agenda';
 import { Patients } from './components/Patients/Patients';
 import { PatientDetail } from './components/Patients/PatientDetail';
@@ -26,7 +27,7 @@ import { prefetchClinicSettings } from './src/hooks/useClinicSettings';
 // ─── Inner App (needs ClinicContext) ─────────────────────────────────────────
 const AppInner: React.FC<{ user: User; onLogout: () => void; onUserUpdated: (u: User) => void }> = ({ user, onLogout, onUserUpdated }) => {
   const { hasPermission } = useClinic();
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState('inicio');
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
 
   const { patients, setPatients } = usePatients();
@@ -34,9 +35,9 @@ const AppInner: React.FC<{ user: User; onLogout: () => void; onUserUpdated: (u: 
 
   // Protege a troca de aba: se não tem permissão, redireciona para home
   const handleTabChange = (tab: string) => {
-    // 'perfil' é sempre acessível para todos os cargos
-    if (tab !== 'perfil' && !hasPermission(tab)) {
-      setActiveTab('home');
+    // 'perfil' e 'inicio' são sempre acessíveis
+    if (tab !== 'perfil' && tab !== 'inicio' && !hasPermission(tab)) {
+      setActiveTab('inicio');
       return;
     }
     setActiveTab(tab);
@@ -45,8 +46,8 @@ const AppInner: React.FC<{ user: User; onLogout: () => void; onUserUpdated: (u: 
 
   // Monitora mudanças de activeTab para garantir proteção contínua
   useEffect(() => {
-    if (activeTab !== 'home' && activeTab !== 'perfil' && !hasPermission(activeTab)) {
-      setActiveTab('home');
+    if (activeTab !== 'inicio' && activeTab !== 'home' && activeTab !== 'perfil' && !hasPermission(activeTab)) {
+      setActiveTab('inicio');
     }
   }, [activeTab, hasPermission]);
 
@@ -81,7 +82,8 @@ const AppInner: React.FC<{ user: User; onLogout: () => void; onUserUpdated: (u: 
     }
 
     switch (activeTab) {
-      case 'home': return <Home onNavigateToPatient={(id) => { setActiveTab('pacientes'); setSelectedPatientId(id); }} />;
+      case 'inicio': return <Inicio user={user} onNavigateToPatient={(id) => { setActiveTab('pacientes'); setSelectedPatientId(id); }} />;
+      case 'home': return hasPermission('home') ? <Home onNavigateToPatient={(id) => { setActiveTab('pacientes'); setSelectedPatientId(id); }} /> : null;
       case 'crm': return hasPermission('crm') ? <Crm /> : null;
       case 'agenda': return hasPermission('agenda') ? <Agenda
         user={user}
@@ -97,7 +99,7 @@ const AppInner: React.FC<{ user: User; onLogout: () => void; onUserUpdated: (u: 
       case 'financeiro': return hasPermission('financeiro') ? <Finance user={user} /> : null;
       case 'admin': return hasPermission('admin') ? <Admin user={user} /> : null;
       case 'perfil': return <MeuPerfil user={user} onUserUpdated={onUserUpdated} />;
-      default: return <Home onNavigateToPatient={(id) => { setActiveTab('pacientes'); setSelectedPatientId(id); }} />;
+      default: return <Inicio user={user} onNavigateToPatient={(id) => { setActiveTab('pacientes'); setSelectedPatientId(id); }} />;
     }
   };
 

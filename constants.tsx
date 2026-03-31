@@ -13,6 +13,7 @@ import {
   BarChart3,
   Kanban,
   UserCircle,
+  Home,
 } from 'lucide-react';
 import { CID10, Service, User, UserRole } from './types';
 
@@ -25,6 +26,7 @@ export const COLORS = {
 };
 
 export const MENU_ITEMS = [
+  { label: 'Início', icon: <Home size={20} />, path: 'inicio' },
   { label: 'Visão Geral', icon: <LayoutDashboard size={20} />, path: 'home' },
   { label: 'CRM / Funil', icon: <Kanban size={20} />, path: 'crm' },
   { label: 'Agenda', icon: <Calendar size={20} />, path: 'agenda' },

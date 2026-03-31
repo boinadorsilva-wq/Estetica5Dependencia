@@ -12,7 +12,8 @@ export enum AppointmentStatus {
   AGENDADO = 'AGENDADO',
   CONFIRMADO = 'CONFIRMADO',
   REALIZADO = 'REALIZADO',
-  CANCELADO = 'CANCELADO'
+  CANCELADO = 'CANCELADO',
+  PENDENTE = 'PENDENTE'
 }
 
 export enum PaymentMethod {
