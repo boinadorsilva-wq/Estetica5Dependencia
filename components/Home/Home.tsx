@@ -104,31 +104,32 @@ export const Home = ({ onNavigateToPatient }: { onNavigateToPatient?: (id: strin
         let outCount = 0;
 
         filteredLeads.forEach(lead => {
-            if (!lead.date) return;
+            if (!lead.created_at) {
+                // Se não sabemos quando foi criado, não temos como avaliar com precisão, mas podemos assumir como Fora ou Comercial. 
+                // Por segurança vamos ignorar, ou assumir comercial.
+                return;
+            }
             
-            // 3. Tratamento de Fuso Horário: usar a data/hora local que está no lead (que a clínica agendou)
-            // Se tiver hora, compomos uma data local. Se não, assume-se que é fora ou usa 00:00.
-            const localTimeString = lead.time ? `${lead.date}T${lead.time}` : `${lead.date}T00:00:00`;
-            const compareDate = new Date(localTimeString);
+            // Avaliar o momento exato em que o lead foi GERADO (Ação do cliente de fato)
+            const createdDate = parseISO(lead.created_at);
             
-            const dayOfWeek = compareDate.getDay(); // 0 (Sunday) to 6 (Saturday)
-            const hour = compareDate.getHours();
-            const minute = compareDate.getMinutes();
-            const startNum = hour + (minute / 60);
+            const dayOfWeek = createdDate.getDay(); // 0 (Sunday) to 6 (Saturday)
+            const hour = createdDate.getHours();
+            const minute = createdDate.getMinutes();
+            const startNum = hour + (minute / 60); // Hora e minuto convertidos em decimal
             
-            // Considera a duração para calcular o fim do agendamento (default 30 min se não houver)
-            const durationMin = (lead.duration && typeof lead.duration === 'number' && lead.duration > 0) ? lead.duration : 30;
-            const durationHours = durationMin / 60;
-            const endNum = startNum + durationHours;
+            // Para criação do lead, consideramos apenas um ponto no tempo (duração = 0)
+            const endNum = startNum;
             
-            const dateStr = lead.date;
+            // Formatar a data para poder comparar com bloqueios manuais que existem para o DIA da criação
+            const dateStr = format(createdDate, 'yyyy-MM-dd');
 
             // --- Define 'Horário Comercial' Rules ---
             let isComercial = true;
 
             const daySetting = scheduleSettings.find(s => s.dia_semana === dayOfWeek);
 
-            // 1. Is the day active?
+            // 1. Is the day active? Se a clínica estava fechada no dia em que o cliente logou, foi uma conversão fora do horário.
             if (!daySetting || !daySetting.esta_ativo) {
                 isComercial = false;
             } else {
@@ -143,25 +144,25 @@ export const Home = ({ onNavigateToPatient }: { onNavigateToPatient?: (id: strin
                 const startLunch = getDecimalTime(daySetting.almoco_inicio || '');
                 const endLunch = getDecimalTime(daySetting.almoco_fim || '');
 
-                // 2. Is the appointment entirely within startWork and endWork?
+                // 2. A criação ocorreu inteiramente dentro do startWork and endWork?
                 if (startWork !== null && endWork !== null) {
-                    // Consider decimal precision issues
-                    if (startNum < (startWork - 0.001) || endNum > (endWork + 0.001)) {
+                    if (startNum < startWork || startNum > endWork) {
                         isComercial = false;
                     }
                 } else {
                     isComercial = false; // if no hours defined, not commercial
                 }
 
-                // 3. Does it overlap with the lunch break?
+                // 3. A criação ocorreu durante a pausa de almoço?
                 if (isComercial && startLunch !== null && endLunch !== null) {
-                    if (startNum < endLunch && endNum > startLunch) {
+                    // Ponto exato caiu entre startLunch e endLunch
+                    if (startNum >= startLunch && startNum < endLunch) {
                         isComercial = false;
                     }
                 }
             }
 
-            // 4. Does the date/time coincide with any blocks (bloqueios_agenda)?
+            // 4. A data da criação coincide com algum bloqueio manual de agenda? (Ex: feriado bloqueado manualmente)
             if (isComercial && blocks && blocks.length > 0) {
                 const dayBlocks = blocks.filter(b => b.data === dateStr);
                 for (const b of dayBlocks) {
@@ -180,8 +181,8 @@ export const Home = ({ onNavigateToPatient }: { onNavigateToPatient?: (id: strin
                     const bEnd = blockEnd();
 
                     if (bStart !== null && bEnd !== null) {
-                        // Check overlap
-                        if (startNum < bEnd && endNum > bStart) {
+                        // Verifica se o momento de criação bate dentro do bloco
+                        if (startNum >= bStart && startNum < bEnd) {
                             isComercial = false;
                             break;
                         }
