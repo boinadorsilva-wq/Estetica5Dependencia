@@ -512,8 +512,10 @@ export const Patients: React.FC<PatientsProps> = ({ onSelectPatient, user }) => 
                     className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-cyan-500/5 outline-none appearance-none cursor-pointer"
                   >
                     <option value="">Selecione o profissional...</option>
-                    {professionals.filter(p => !p.pending).map(p => (
-                      <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
+                    {professionals.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} {p.role === 'admin' ? '(Gestor)' : '(Profissional)'}
+                      </option>
                     ))}
                   </select>
                 </div>
