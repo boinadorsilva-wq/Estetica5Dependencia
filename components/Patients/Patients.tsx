@@ -22,8 +22,9 @@ import {
   Settings
 } from 'lucide-react';
 import { User as UserType, UserRole, CID10 } from '../../types';
-import { CID10_MOCK, USERS_MOCK } from '../../constants';
+import { CID10_MOCK } from '../../constants';
 import { usePatients } from '../../src/hooks/usePatients';
+import { useProfessionals } from '../../src/hooks/useProfessionals';
 import { supabase } from '../../src/lib/supabase';
 
 interface PatientsProps {
@@ -72,7 +73,8 @@ export const Patients: React.FC<PatientsProps> = ({ onSelectPatient, user }) => 
     ).slice(0, 5);
   }, [cidSearch]);
 
-  const { patients: patientsRaw, loading } = usePatients();
+  const { patients: patientsRaw, loading, setPatients } = usePatients();
+  const { professionals } = useProfessionals();
 
   const processedPatients = useMemo(() => {
     let result = [...patientsRaw];
@@ -123,7 +125,7 @@ export const Patients: React.FC<PatientsProps> = ({ onSelectPatient, user }) => 
 
   const handleSavePatient = async () => {
     try {
-      const { error } = await supabase.from('patients').insert({
+      const { data, error } = await supabase.from('patients').insert({
         name: newPatient.name,
         cpf: newPatient.cpf,
         birthDate: newPatient.birthDate,
@@ -135,9 +137,39 @@ export const Patients: React.FC<PatientsProps> = ({ onSelectPatient, user }) => 
         responsiblePhysioId: newPatient.physioId,
         notes: newPatient.notes,
         status: 'Ativo'
-      });
+      }).select().single();
 
       if (error) throw error;
+
+      // Optimistic Update
+      if (data) {
+        setPatients(prev => [
+          {
+            id: data.id,
+            name: data.full_name || data.name,
+            full_name: data.full_name || data.name,
+            phone: data.phone || '',
+            cpf: data.cpf || '',
+            birthDate: data.birth_date || data.birthDate || '',
+            birth_date: data.birth_date || data.birthDate || '',
+            address: data.address || '',
+            gender: data.gender || 'Não Informado',
+            insurance: data.insurance || 'Nenhuma',
+            status: data.status || 'Ativo',
+            createdAt: data.created_at || data.createdAt || new Date().toISOString(),
+            creditsRemaining: data.creditsRemaining || 0,
+            notes: data.initial_observations || data.notes || '',
+            initial_observations: data.initial_observations || data.notes || '',
+            cidCode: data.cidCode || '',
+            cidDescription: data.cidDescription || '',
+            responsiblePhysioId: data.responsiblePhysioId || '',
+            fitzpatrick_scale: data.fitzpatrick_scale || data.cid10 || '',
+            allergies: data.allergies || '',
+            cid10: data.cid10 || ''
+          },
+          ...prev
+        ]);
+      }
 
       alert("Paciente cadastrado com sucesso!");
       setIsNewModalOpen(false);
@@ -480,8 +512,8 @@ export const Patients: React.FC<PatientsProps> = ({ onSelectPatient, user }) => 
                     className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-cyan-500/5 outline-none appearance-none cursor-pointer"
                   >
                     <option value="">Selecione o profissional...</option>
-                    {USERS_MOCK.filter(u => u.role !== UserRole.PENDENTE).map(u => (
-                      <option key={u.id} value={u.id}>{u.name}</option>
+                    {professionals.filter(p => !p.pending).map(p => (
+                      <option key={p.id} value={p.id}>{p.full_name || p.email}</option>
                     ))}
                   </select>
                 </div>
