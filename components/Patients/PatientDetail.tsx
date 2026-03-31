@@ -136,8 +136,6 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
     tipo_atendimento: ''
   });
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
-  const [selectedImages, setSelectedImages] = useState<File[]>([]);
-  const [uploadingImages, setUploadingImages] = useState(false);
   const [recordToDelete, setRecordToDelete] = useState<ClinicalRecord | null>(null);
 
   const { settings } = useClinicSettings();
@@ -321,43 +319,13 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
 
   const handleSaveClinicalRecord = async () => {
     if (!newClinicalRecord.relatorio) return;
-    setUploadingImages(true);
     try {
-      let imageUrls: string[] = [];
-      
-      if (editingRecordId) {
-        const oldRecord = clinicalRecords.find(r => r.id === editingRecordId);
-        if (oldRecord && oldRecord.image_urls) {
-          imageUrls = [...oldRecord.image_urls];
-        }
-      }
-
-      for (const file of selectedImages) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${patientId}/${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('patient-records')
-          .upload(fileName, file);
-
-        if (uploadError) throw uploadError;
-
-        const { data: publicUrlData } = supabase.storage
-          .from('patient-records')
-          .getPublicUrl(fileName);
-
-        if (publicUrlData) {
-          imageUrls.push(publicUrlData.publicUrl);
-        }
-      }
-
       const payload = {
         patient_id: patientId,
         data: new Date().toISOString().split('T')[0],
         profissional_id: user.id || null,
         relatorio: newClinicalRecord.relatorio,
-        tipo_atendimento: newClinicalRecord.tipo_atendimento || 'Avaliação/Evolução',
-        image_urls: imageUrls
+        tipo_atendimento: newClinicalRecord.tipo_atendimento || 'Avaliação/Evolução'
       };
 
       if (editingRecordId) {
@@ -372,14 +340,11 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
 
       setIsClinicalRecordModalOpen(false);
       setNewClinicalRecord({ relatorio: '', tipo_atendimento: '' });
-      setSelectedImages([]);
       setEditingRecordId(null);
       fetchClinicalRecords();
     } catch (err: any) {
       console.error('Erro ao salvar prontuário:', err);
       toast.error(`Erro ao salvar prontuário: ${err.message || 'Desconhecido'}`);
-    } finally {
-      setUploadingImages(false);
     }
   };
 
@@ -942,7 +907,6 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                 onClick={() => {
                   setEditingRecordId(null);
                   setNewClinicalRecord({ relatorio: '', tipo_atendimento: '' });
-                  setSelectedImages([]);
                   setIsClinicalRecordModalOpen(true);
                 }}
                 className="flex items-center gap-2 bg-[var(--primary-color)] hover:bg-[#008c9a] text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-cyan-100 active:scale-95"
@@ -975,7 +939,6 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                           onClick={() => {
                             setEditingRecordId(record.id);
                             setNewClinicalRecord({ relatorio: record.relatorio, tipo_atendimento: record.tipo_atendimento || '' });
-                            setSelectedImages([]);
                             setIsClinicalRecordModalOpen(true);
                           }}
                           className="flex items-center gap-2 px-4 py-2 hover:bg-cyan-50 border border-gray-100 text-[var(--primary-color)] rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95"
@@ -1419,7 +1382,7 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                 <h3 className="font-bold text-gray-800 text-lg">Nova Evolução/Relatório</h3>
                 <button onClick={() => setIsClinicalRecordModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
               </div>
-              <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              <div className="p-6 flex-1 flex flex-col gap-4 overflow-y-auto w-full">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tipo de Atendimento</label>
                   <input
@@ -1430,38 +1393,25 @@ export const PatientDetail: React.FC<PatientDetailProps> = ({
                     placeholder="Ex: Avaliação Inicial, Sessão 1, Liberação, etc."
                   />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 flex flex-col flex-1 pb-2">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Relato Clínico (Prontuário)</label>
                   <textarea
                     value={newClinicalRecord.relatorio}
                     onChange={(e) => setNewClinicalRecord({ ...newClinicalRecord, relatorio: e.target.value })}
-                    className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-cyan-500/20 outline-none min-h-[160px] resize-none"
+                    className="w-full p-5 bg-gray-50 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-cyan-500/20 outline-none flex-1 resize-none"
+                    style={{ minHeight: '260px' }}
                     placeholder="Descreva a evolução do paciente, técnicas utilizadas, resposta ao tratamento..."
                   />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Anexar Imagens</label>
-                  <label className="flex items-center gap-2 px-5 py-4 bg-gray-50 border border-gray-100 border-dashed rounded-2xl cursor-pointer hover:bg-gray-100 transition-colors">
-                    <Upload size={18} className="text-gray-400" />
-                    <span className="text-sm font-bold text-gray-500">Selecionar arquivos...</span>
-                    <input type="file" multiple accept="image/*" className="hidden" onChange={(e) => setSelectedImages(Array.from(e.target.files || []))} />
-                  </label>
-                  {selectedImages.length > 0 && (
-                    <p className="text-xs font-bold text-slate-500 mt-2">{selectedImages.length} novo(s) arquivo(s) selecionado(s)</p>
-                  )}
-                  {editingRecordId && clinicalRecords.find(r => r.id === editingRecordId)?.image_urls && (
-                     <p className="text-xs font-bold text-slate-400 mt-1">Já possui {(clinicalRecords.find(r => r.id === editingRecordId)?.image_urls || []).length} anexo(s) salvos.</p>
-                  )}
                 </div>
               </div>
               <div className="p-6 border-t border-gray-50 flex gap-3">
                 <button onClick={() => setIsClinicalRecordModalOpen(false)} className="flex-1 py-3 text-sm font-bold text-slate-500 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">Cancelar</button>
                 <button
                   onClick={handleSaveClinicalRecord}
-                  disabled={!newClinicalRecord.relatorio || uploadingImages}
+                  disabled={!newClinicalRecord.relatorio}
                   className="flex-1 py-3 text-sm font-black text-white bg-[var(--primary-color)] hover:bg-[#008c9a] rounded-xl shadow-lg shadow-cyan-100 transition-all disabled:opacity-50"
                 >
-                  {uploadingImages ? 'Salvando...' : 'Salvar'}
+                  Salvar
                 </button>
               </div>
             </div>
