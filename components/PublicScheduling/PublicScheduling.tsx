@@ -289,7 +289,7 @@ export const PublicScheduling: React.FC = () => {
                 const { data: newPatient, error: createError } = await supabase
                     .from('patients')
                     .insert({
-                        clinic_id: clinicSettings?.id || null,
+                        clinicId: clinicSettings?.id || null,
                         name: form.name,
                         phone: form.phone,
                         email: form.email || null,
@@ -308,20 +308,20 @@ export const PublicScheduling: React.FC = () => {
 
             // 2. Salvar Agendamento no Banco de Dados (Supabase)
             const { error: apptError } = await supabase.from('appointments').insert({
-                clinic_id: clinicSettings?.id || null,
-                patient_id: finalPatientId,
-                service_id: form.serviceId || null,
-                professional_id: form.professionalId || null,
+                clinicId: clinicSettings?.id || null,
+                patientId: finalPatientId,
+                serviceId: form.serviceId || null,
+                professional_id: form.professionalId || null, // Keep professional_id as it was dual-mapped in Agenda.tsx mostly
                 date: form.date,
                 time: form.time,
                 duration: serviceDuration,
                 status: 'PENDENTE',
                 value: serviceValue,
-                temp_guest_name: form.name,
-                temp_guest_phone: form.phone,
-                temp_guest_email: form.email,
-                service_name: selectedService?.name || 'Serviço Estético',
-                payment_method: form.paymentMethod,
+                tempGuestName: form.name,
+                tempGuestPhone: form.phone,
+                tempGuestEmail: form.email,
+                serviceName: selectedService?.name || 'Serviço Estético',
+                paymentMethod: form.paymentMethod,
                 notes: 'Agendamento via Site (Online)',
             });
 
