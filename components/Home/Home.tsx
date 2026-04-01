@@ -251,34 +251,15 @@ export const Home = ({ onNavigateToPatient }: { onNavigateToPatient?: (id: strin
         ];
     }, [outOfHoursCount, totalLeads]);
 
-    // Upcoming Appointments Table
+    // Upcoming Appointments Table (Showing Pending Appointments)
     const upcomingAppointments = useMemo(() => {
-        const today = startOfDay(new Date());
-        const nowTime = new Date().getTime();
-        
         return appointments
-            .filter(lead => {
-                if (!lead.date) return false;
-                
-                // Mostrar a partir de hoje
-                const dateMatches = parseISO(lead.date).getTime() >= today.getTime();
-                
-                // Se for hoje, garantir que o horário (time) ainda não passou
-                if (parseISO(lead.date).getTime() === today.getTime() && lead.time) {
-                     const exactApptTime = new Date(`${lead.date}T${lead.time}`).getTime();
-                     if (exactApptTime < nowTime) {
-                         return false; // Já passou no dia de hoje
-                     }
-                }
-                
-                return dateMatches;
-            })
+            .filter(lead => lead.status === 'PENDENTE')
             .sort((a, b) => {
-                const timeA = new Date(`${a.date}T${a.time || '00:00:00'}`).getTime();
-                const timeB = new Date(`${b.date}T${b.time || '00:00:00'}`).getTime();
-                return timeA - timeB;
-            })
-            .slice(0, 5); // Limit to 5 for the dashboard
+                const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+                const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+                return timeB - timeA; // Mais recentes no topo
+            });
     }, [appointments]);
 
     return (
@@ -479,11 +460,11 @@ export const Home = ({ onNavigateToPatient }: { onNavigateToPatient?: (id: strin
                 <div className="mb-6 flex justify-between items-end">
                     <div>
                         <h3 className="text-lg font-bold text-slate-800">Próximos Agendamentos</h3>
-                        <p className="text-slate-500 text-sm font-medium">Leads com agendamento marcado</p>
+                        <p className="text-slate-500 text-sm font-medium">Agendamentos pendentes aguardando confirmação</p>
                     </div>
                 </div>
 
-                <div className="overflow-x-auto custom-scrollbar">
+                <div className="overflow-x-auto overflow-y-auto max-h-[400px] custom-scrollbar">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-slate-100">
@@ -520,7 +501,7 @@ export const Home = ({ onNavigateToPatient }: { onNavigateToPatient?: (id: strin
                             ) : (
                                 <tr>
                                     <td colSpan={4} className="py-8 text-center text-slate-500 font-medium">
-                                        Nenhum agendamento futuro encontrado no período.
+                                        Nenhum agendamento pendente encontrado.
                                     </td>
                                 </tr>
                             )}
