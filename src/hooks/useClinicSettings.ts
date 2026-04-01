@@ -97,33 +97,14 @@ export const useClinicSettings = () => {
                 primary_color: merged.primary_color ?? null,
                 permissions: merged.permissions,
             };
+            // Se o settings já possui ID, adicionamos no payload para o upsert não duplicar a linha
+            const finalPayload = merged.id ? { id: merged.id, ...payload } : payload;
 
-            let result;
-
-            if (merged.id) {
-                result = await supabase
-                    .from('clinic_settings')
-                    .update(payload)
-                    .eq('id', merged.id)
-                    .select()
-                    .single();
-            } else {
-                const check = await supabase.from('clinic_settings').select('id').limit(1).maybeSingle();
-                if (check.data?.id) {
-                    result = await supabase
-                        .from('clinic_settings')
-                        .update(payload)
-                        .eq('id', check.data.id)
-                        .select()
-                        .single();
-                } else {
-                    result = await supabase
-                        .from('clinic_settings')
-                        .insert(payload)
-                        .select()
-                        .single();
-                }
-            }
+            const result = await supabase
+                .from('clinic_settings')
+                .upsert(finalPayload, { onConflict: 'id' }) // Faz UPDATE se achar o ID, INSERT se não achar
+                .select()
+                .single();
 
             if (result.error) {
                 throw result.error;

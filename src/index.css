@@ -79,3 +79,12 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* Ocultar Vercel Widget e Speed Insights Feedback na visualização da Vercel */
+vercel-live-feedback, #vercel-toolbar-wrapper, .vercel-toolbar, [data-vercel-toolbar] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  z-index: -9999 !important;
+}
