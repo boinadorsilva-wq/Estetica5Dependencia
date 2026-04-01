@@ -1,31 +1,61 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore, UserRole } from '../store/useStore';
-import { Activity, UserCircle2, ShieldCheck, User } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export const Login = () => {
     const [email, setEmail] = useState('');
-    const [role, setRole] = useState<UserRole>('GESTOR');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const login = useStore((state) => state.login);
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Simplified Auth for Preview
-        login({
-            id: '123',
-            name: email.split('@')[0] || 'Usuário Teste',
-            email: email || 'usuario@teste.com',
-            role,
-        });
-        navigate('/inicio');
-    };
+        setLoading(true);
 
-    const roles = [
-        { id: 'GESTOR', label: 'Gestor de Clínica', icon: ShieldCheck, desc: 'Acesso total' },
-        { id: 'AUTONOMO', label: 'Fisio Autônomo', icon: UserCircle2, desc: 'Sem Admin' },
-        { id: 'COLABORADOR', label: 'Colaborador', icon: User, desc: 'Acesso Restrito' },
-    ];
+        try {
+            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (authError) {
+                alert('Erro ao fazer login: ' + authError.message);
+                setLoading(false);
+                return;
+            }
+
+            if (authData.user) {
+                // Fetch the user's role from the public.profiles table
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role, full_name')
+                    .eq('id', authData.user.id)
+                    .single();
+
+                // Assign the role mapped from DB (or fallback to GESTOR)
+                let userRole: UserRole = 'COLABORADOR';
+                if (profile?.role === 'admin') userRole = 'GESTOR';
+                if (profile?.role === 'professional' || profile?.role === 'FISIO_AUTONOMO') userRole = 'AUTONOMO';
+
+                login({
+                    id: authData.user.id,
+                    name: profile?.full_name || email.split('@')[0],
+                    email: authData.user.email || email,
+                    role: userRole,
+                });
+
+                navigate('/inicio');
+            }
+        } catch (err) {
+            console.error('Erro de conexão:', err);
+            alert('Erro inesperado de conexão com o Supabase.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-cyan-50 to-slate-100 flex items-center justify-center p-4">
@@ -40,35 +70,13 @@ export const Login = () => {
 
                 <form onSubmit={handleLogin} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">Selecione seu Perfil</label>
-                        <div className="grid grid-cols-1 gap-2">
-                            {roles.map((r) => (
-                                <button
-                                    key={r.id}
-                                    type="button"
-                                    onClick={() => setRole(r.id as UserRole)}
-                                    className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${role === r.id
-                                            ? 'border-cyan-brand bg-cyan-50 text-cyan-900'
-                                            : 'border-slate-100 hover:border-cyan-200 text-slate-600'
-                                        }`}
-                                >
-                                    <r.icon size={20} className={role === r.id ? 'text-cyan-brand' : 'text-slate-400'} />
-                                    <div>
-                                        <div className="font-bold text-sm">{r.label}</div>
-                                        <div className="text-xs opacity-70">{r.desc}</div>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div>
                         <label className="block text-sm font-semibold text-slate-700 mb-2">E-mail</label>
                         <input
                             type="email"
                             placeholder="seu@email.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
+                            required
                             className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-brand/20 focus:border-cyan-brand transition-all"
                         />
                     </div>
@@ -78,16 +86,23 @@ export const Login = () => {
                         <input
                             type="password"
                             placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
                             className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-brand/20 focus:border-cyan-brand transition-all"
                         />
                     </div>
 
                     <button
                         type="submit"
-                        className="w-full py-4 bg-cyan-brand hover:bg-cyan-600 text-white font-bold rounded-xl shadow-lg shadow-cyan-brand/20 transition-all active:scale-95"
+                        disabled={loading}
+                        className="w-full py-4 bg-cyan-brand hover:bg-cyan-600 text-white font-bold rounded-xl shadow-lg shadow-cyan-brand/20 transition-all active:scale-95 disabled:opacity-50"
                     >
-                        Entrar no Sistema
+                        {loading ? 'Autenticando...' : 'Entrar no Sistema'}
                     </button>
+                    <p className="text-center text-xs text-slate-400 mt-4">
+                        Conectado ao Supabase Seguro
+                    </p>
                 </form>
             </div>
         </div>

@@ -30,7 +30,7 @@ export const prefetchClinicSettings = async () => {
             .from('clinic_settings')
             .select('*')
             .limit(1)
-            .single();
+            .maybeSingle();
         if (!error && data) {
             globalClinicSettingsCache = mapSettings(data);
         }
@@ -40,7 +40,6 @@ export const prefetchClinicSettings = async () => {
 };
 
 export const useClinicSettings = () => {
-    // ✅ Inicializa com cache SWR global para evitar flash de valores padrão
     const [settings, setSettings] = useState<ClinicSettings>(
         globalClinicSettingsCache ?? DEFAULT_CLINIC_SETTINGS
     );
@@ -55,35 +54,36 @@ export const useClinicSettings = () => {
 
     useEffect(() => {
         const fetchSettings = async () => {
-            // DEBUG DIRETO (BYPASS DE AUTH)
             try {
                 const { data, error } = await supabase
                     .from('clinic_settings')
                     .select('*')
                     .limit(1)
-                    .single();
+                    .maybeSingle();
 
                 if (error && error.code !== 'PGRST116') {
                     console.warn('[useClinicSettings] Erro ao buscar — mantendo settings existentes:', error.message);
-                    // ✅ PROTEÇÃO: mantém settings atuais em caso de erro
                     if (isMountedRef.current) setLoading(false);
                     return;
                 }
 
                 if (data && isMountedRef.current) {
                     const newSettings = mapSettings(data);
-                    // ✅ Atualiza cache global
                     globalClinicSettingsCache = newSettings;
                     setSettings(newSettings);
                 }
             } catch (err) {
-                console.warn('[useClinicSettings] Erro inesperado — mantendo settings existentes:', err);
+                console.warn('[useClinicSettings] Erro inesperado:', err);
             } finally {
                 if (isMountedRef.current) setLoading(false);
             }
         };
 
-        fetchSettings();
+        if (!globalClinicSettingsCache) {
+            fetchSettings();
+        } else {
+            setLoading(false);
+        }
     }, []);
 
     const saveSettings = async (partial: Partial<ClinicSettings>) => {
@@ -96,7 +96,6 @@ export const useClinicSettings = () => {
                 logo_url: merged.logo_url ?? null,
                 primary_color: merged.primary_color ?? null,
                 permissions: merged.permissions,
-                updated_at: new Date().toISOString(),
             };
 
             let result;
@@ -109,16 +108,25 @@ export const useClinicSettings = () => {
                     .select()
                     .single();
             } else {
-                result = await supabase
-                    .from('clinic_settings')
-                    .insert(payload)
-                    .select()
-                    .single();
+                const check = await supabase.from('clinic_settings').select('id').limit(1).maybeSingle();
+                if (check.data?.id) {
+                    result = await supabase
+                        .from('clinic_settings')
+                        .update(payload)
+                        .eq('id', check.data.id)
+                        .select()
+                        .single();
+                } else {
+                    result = await supabase
+                        .from('clinic_settings')
+                        .insert(payload)
+                        .select()
+                        .single();
+                }
             }
 
             if (result.error) {
-                console.error('Erro ao salvar configurações:', result.error);
-                return false;
+                throw result.error;
             }
 
             if (result.data && isMountedRef.current) {

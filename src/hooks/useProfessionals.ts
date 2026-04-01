@@ -29,7 +29,11 @@ export function useProfessionals({ publicMode = false } = {}) {
         const { data, error } = await supabase
           .from('profiles')
           .select('id, full_name, role')
-          .in('role', ['admin', 'professional']);
+          .in('role', [
+            'admin', 'Admin', 'ADMIN', 'Gestor', 'GESTOR', 
+            'professional', 'Professional', 'PROFISSIONAL',
+            'FISIO_AUTONOMO', 'FISIO_COLABORADOR'
+          ]);
 
         console.log('[useProfessionals] Dados:', data, 'Erro:', error);
         if (data && !error) console.log('Tabela Profiles carregou:', data);

@@ -183,7 +183,8 @@ export const Agenda: React.FC<AgendaProps> = ({ user, onNavigateToPatient, onPat
   };
 
   const assignableProfessionals = useMemo(() => {
-    return professionals.filter(p => p.role === UserRole.ADMIN || p.role === UserRole.PROFESSIONAL);
+    // A lista já é pré-filtrada pelo hook useProfessionals (admin, gestor, profissionais, etc)
+    return professionals;
   }, [professionals]);
 
   const handleAssignProfessional = async (professionalId: string) => {
@@ -325,6 +326,12 @@ export const Agenda: React.FC<AgendaProps> = ({ user, onNavigateToPatient, onPat
 
     // --- FILTRO FINAL: SLOT FITTING POR MATEMÁTICA DE INTERVALOS ---
     const serviceDuration = newAppointment.duration || 60;
+    
+    // Obter data e hora local atual para impedir agendamentos retroativos
+    const now = new Date();
+    const todayDateStr = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    const isToday = date === todayDateStr;
+    const currentMins = now.getHours() * 60 + now.getMinutes();
 
     TIME_OPTIONS.forEach(slot => {
       if (isClosed) {
@@ -334,6 +341,12 @@ export const Agenda: React.FC<AgendaProps> = ({ user, onNavigateToPatient, onPat
       
       const slotStart = timeToMins(slot);
       const slotEnd = slotStart + serviceDuration;
+
+      // Impede agendamentos no passado se for hoje
+      if (isToday && slotStart < currentMins) {
+        occupied.add(slot);
+        return;
+      }
 
       // Fora do expediente
       if (slotStart < openStart || slotEnd > openEnd) {
@@ -370,6 +383,20 @@ export const Agenda: React.FC<AgendaProps> = ({ user, onNavigateToPatient, onPat
       const timeValStr = newAppointment.time + ':00';
       const dayOfWeek = new Date(newAppointment.date + 'T12:00:00').getDay();
       const dayConfig = settings.find(s => s.dia_semana === dayOfWeek);
+
+      const now = new Date();
+      const appointmentDateTime = new Date(`${newAppointment.date}T${newAppointment.time}:00`);
+      
+      if (appointmentDateTime < now) {
+          const originalAppt = selectedAppointment;
+          const isSameDateTime = originalAppt && originalAppt.date === newAppointment.date && originalAppt.time === newAppointment.time;
+          
+          if (!isSameDateTime) {
+             alert('Não é possível criar ou remarcar agendamentos para datas e horários que já passaram.');
+             setIsSavingAppointment(false);
+             return;
+          }
+      }
 
       const blocksNoSlot = blocks.filter(b => b.data === newAppointment.date && timeValStr >= b.hora_inicio && timeValStr < b.hora_fim);
       const exceptionBlock = blocksNoSlot.find(b => b.descricao === 'LIVRE_EXCECAO');
@@ -1047,7 +1074,13 @@ export const Agenda: React.FC<AgendaProps> = ({ user, onNavigateToPatient, onPat
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Data *</label>
-                  <input type="date" value={newAppointment.date} onChange={(e) => setNewAppointment({ ...newAppointment, date: e.target.value })} className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-cyan-500/5 outline-none" />
+                  <input 
+                    type="date" 
+                    min={new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0]}
+                    value={newAppointment.date} 
+                    onChange={(e) => setNewAppointment({ ...newAppointment, date: e.target.value })} 
+                    className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl text-sm font-bold text-gray-700 focus:ring-4 focus:ring-cyan-500/5 outline-none" 
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Hora *</label>

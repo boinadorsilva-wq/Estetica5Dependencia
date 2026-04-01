@@ -311,6 +311,7 @@ export const PublicScheduling: React.FC = () => {
                 clinicId: clinicSettings?.id || null,
                 patientId: finalPatientId,
                 serviceId: form.serviceId || null,
+                physioId: form.professionalId || null,
                 professional_id: form.professionalId || null, // Keep professional_id as it was dual-mapped in Agenda.tsx mostly
                 date: form.date,
                 time: form.time,
