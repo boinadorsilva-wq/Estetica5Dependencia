@@ -1,10 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY não definidas.');
+  console.error('CRITICAL: Variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY não estão definidas na Vercel!');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Inicializa com url genérica se estiver faltando para não dar crash fatal na importação
+export const supabase = createClient(
+  supabaseUrl || 'https://missing-url.supabase.co', 
+  supabaseKey || 'missing-key'
+);
