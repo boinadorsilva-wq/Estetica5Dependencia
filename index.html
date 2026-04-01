@@ -29,6 +29,24 @@
 <link rel="stylesheet" href="/index.css">
 </head>
 <body class="bg-gray-50 text-gray-900">
+    <!-- Visual Error Debugger -->
+    <script>
+      window.addEventListener('error', function(event) {
+        document.body.innerHTML = '<div style="background:#ffdddd; color:#990000; padding:20px; font-family:monospace; margin:20px; border:1px solid #ff0000; border-radius:5px; white-space:pre-wrap;">' + 
+          '<h2>🔴 Erro Crítico (Crash)</h2>' +
+          '<b>Mensagem:</b> ' + event.message + '<br/><br/>' +
+          '<b>Arquivo:</b> ' + event.filename + ':' + event.lineno + ':' + event.colno + '<br/><br/>' +
+          '<b>Stack:</b> ' + (event.error && event.error.stack ? event.error.stack : 'N/A') +
+          '</div>';
+      });
+      window.addEventListener('unhandledrejection', function(event) {
+        document.body.innerHTML += '<div style="background:#ffeeee; color:#aa0000; padding:20px; font-family:monospace; margin:20px; border:1px solid #cc0000; border-radius:5px; white-space:pre-wrap;">' + 
+          '<h2>🟠 Promessa Não Tratada</h2>' +
+          '<b>Motivo:</b> ' + String(event.reason) + '<br/><br/>' +
+          '<b>Stack:</b> ' + (event.reason && event.reason.stack ? event.reason.stack : 'N/A') +
+          '</div>';
+      });
+    </script>
     <div id="root"></div>
 <script type="module" src="/index.tsx"></script>
 </body>

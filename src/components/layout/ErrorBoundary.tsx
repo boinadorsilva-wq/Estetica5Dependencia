@@ -44,7 +44,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             </button>
             
             {/* Opcional: mostrar stack em dev */}
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.MODE === 'development' && this.state.error && (
               <pre className="mt-6 p-4 bg-slate-100 text-[10px] text-slate-600 rounded-xl overflow-auto w-full text-left">
                 {this.state.error.toString()}
               </pre>
